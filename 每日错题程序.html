@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>每日错题复习</title>
+<style>
+  :root {
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --bg: #f8fafc;
+    --card-bg: #ffffff;
+    --text: #1e293b;
+    --text-secondary: #64748b;
+    --border: #e2e8f0;
+    --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -4px rgba(0,0,0,.1);
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  .container { max-width: 560px; margin: 0 auto; padding: 16px; }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 24px 0 16px;
+  }
+  .header h1 { font-size: 1.6rem; font-weight: 700; color: var(--primary); }
+  .header .subtitle { font-size: .85rem; color: var(--text-secondary); margin-top: 2px; }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex; gap: 8px;
+    margin-bottom: 16px;
+  }
+  .stat-card {
+    flex: 1;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 12px;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .stat-card .number { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+  .stat-card .label { font-size: .75rem; color: var(--text-secondary); margin-top: 2px; }
+
+  /* Recommendation Card */
+  .recommend-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow-lg);
+    margin-bottom: 16px;
+    min-height: 160px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    transition: all .2s;
+  }
+  .recommend-card.empty { color: var(--text-secondary); }
+  .recommend-card .icon {
+    font-size: 3rem; margin-bottom: 8px;
+  }
+  .recommend-card .problem-index {
+    font-size: 1.8rem; font-weight: 700; color: var(--text);
+  }
+  .recommend-card .meta {
+    font-size: .82rem; color: var(--text-secondary); margin-top: 4px;
+    display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+  }
+  .recommend-card .meta span { white-space: nowrap; }
+  .recommend-card .overdue-badge {
+    display: inline-block; background: #fef2f2; color: var(--danger);
+    padding: 2px 8px; border-radius: 20px; font-size: .75rem; font-weight: 600;
+  }
+  .recommend-card .due-badge {
+    display: inline-block; background: #ecfdf5; color: var(--success);
+    padding: 2px 8px; border-radius: 20px; font-size: .75rem; font-weight: 600;
+  }
+
+  .btn-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; justify-content: center; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 20px; font-size: .9rem; font-weight: 600;
+    border: none; border-radius: 8px; cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-success:hover { background: #059669; }
+  .btn-outline { background: #fff; color: var(--text); border: 1.5px solid var(--border); }
+  .btn-outline:hover { background: #f1f5f9; }
+  .btn-sm { padding: 6px 14px; font-size: .8rem; }
+  .btn-danger { background: #fff; color: var(--danger); border: 1.5px solid #fecaca; }
+  .btn-danger:hover { background: #fef2f2; }
+
+  /* Add Form */
+  .add-section {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .add-section h3 { font-size: .95rem; margin-bottom: 10px; color: var(--text); }
+  .add-form { display: flex; gap: 8px; }
+  .add-form input {
+    flex: 1; padding: 10px 14px; border: 1.5px solid var(--border);
+    border-radius: 8px; font-size: .9rem; outline: none;
+    transition: border-color .15s;
+  }
+  .add-form input:focus { border-color: var(--primary); }
+
+  /* Problem List */
+  .list-section {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .list-section h3 {
+    padding: 14px 20px; font-size: .95rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .problem-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 20px; border-bottom: 1px solid var(--border);
+    transition: background .1s;
+  }
+  .problem-item:last-child { border-bottom: none; }
+  .problem-item:hover { background: #f8fafc; }
+  .problem-item .col-index { flex: 1; font-weight: 600; min-width: 0; word-break: break-all; }
+  .problem-item .col-count { font-size: .8rem; color: var(--text-secondary); white-space: nowrap; }
+  .problem-item .col-date { font-size: .78rem; color: var(--text-secondary); white-space: nowrap; }
+  .problem-item .col-date.overdue { color: var(--danger); font-weight: 600; }
+  .problem-item .col-date.near { color: var(--warning); font-weight: 600; }
+  .problem-item .col-actions { display: flex; gap: 4px; }
+
+  .empty-list { padding: 32px 20px; text-align: center; color: var(--text-secondary); font-size: .85rem; }
+
+  /* Footer actions */
+  .footer-actions {
+    display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+    background: #1e293b; color: #fff; padding: 10px 24px;
+    border-radius: 8px; font-size: .85rem; font-weight: 500;
+    z-index: 1000; opacity: 0; pointer-events: none;
+    transition: opacity .3s;
+  }
+  .toast.show { opacity: 1; }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.4);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 500;
+  }
+  .modal {
+    background: var(--card-bg); border-radius: var(--radius);
+    padding: 24px; width: 90%; max-width: 480px;
+    box-shadow: var(--shadow-lg);
+  }
+  .modal h3 { margin-bottom: 12px; }
+  .modal textarea {
+    width: 100%; height: 200px; padding: 12px;
+    border: 1.5px solid var(--border); border-radius: 8px;
+    font-size: .82rem; font-family: monospace; resize: vertical;
+  }
+  .modal .modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+
+  @media (max-width: 400px) {
+    .container { padding: 10px; }
+    .recommend-card { padding: 16px; }
+    .problem-item { padding: 10px 14px; gap: 8px; }
+    .btn { padding: 8px 16px; font-size: .82rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <h1>📚 每日错题复习</h1>
+    <div class="subtitle">基于艾宾浩斯遗忘曲线 · 科学安排复习计划</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="number" id="statTotal">0</div>
+      <div class="label">总错题数</div>
+    </div>
+    <div class="stat-card">
+      <div class="number" id="statDue">0</div>
+      <div class="label">今日待复习</div>
+    </div>
+    <div class="stat-card">
+      <div class="number" id="statReviewed">0</div>
+      <div class="label">今日已复习</div>
+    </div>
+  </div>
+
+  <!-- Recommendation Card -->
+  <div class="recommend-card empty" id="recommendCard">
+    <div id="recommendContent">
+      <div class="icon">📝</div>
+      <p>还没有错题，先添加一个吧</p>
+    </div>
+    <div class="btn-row" id="recommendBtns" style="display:none;">
+      <button class="btn btn-success" onclick="markReviewed()">✅ 已完成复习</button>
+      <button class="btn btn-outline" onclick="skipCurrent()">⏭ 跳过</button>
+    </div>
+  </div>
+
+  <!-- Add Form -->
+  <div class="add-section">
+    <h3>➕ 添加错题</h3>
+    <form class="add-form" onsubmit="addProblem(event)">
+      <input type="text" id="inputIndex" placeholder="输入错题编号或名称…" required autocomplete="off">
+      <button type="submit" class="btn btn-primary">添加</button>
+    </form>
+  </div>
+
+  <!-- Problem List -->
+  <div class="list-section">
+    <h3>📋 所有错题 <span style="font-weight:400;color:var(--text-secondary);font-size:.8rem;" id="listCount"></span></h3>
+    <div id="problemList"></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer-actions">
+    <button class="btn btn-outline btn-sm" onclick="exportData()">📤 导出数据</button>
+    <button class="btn btn-outline btn-sm" onclick="triggerImport()">📥 导入 JSON</button>
+    <button class="btn btn-outline btn-sm" onclick="triggerBatchImport()">📝 批量导入</button>
+    <button class="btn btn-danger btn-sm" onclick="confirmClear()">🗑 清空全部</button>
+  </div>
+</div>
+
+<!-- Hidden file input for import -->
+<input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
+
+<!-- Import Modal -->
+<div class="modal-overlay" id="importModal" style="display:none;">
+  <div class="modal">
+    <h3>📥 导入数据</h3>
+    <p style="font-size:.82rem;color:var(--text-secondary);margin-bottom:8px;">
+      粘贴 JSON 数据，或使用下方的文件选择按钮。导入会<strong>合并</strong>到现有数据中（相同 ID 会覆盖）。
+    </p>
+    <textarea id="importText" placeholder='粘贴 JSON 数据...'></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📁 选择文件</button>
+      <button class="btn btn-outline btn-sm" onclick="closeImportModal()">取消</button>
+      <button class="btn btn-primary btn-sm" onclick="doImport()">导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- Batch Import Modal -->
+<div class="modal-overlay" id="batchImportModal" style="display:none;">
+  <div class="modal">
+    <h3>📝 批量导入错题</h3>
+    <p style="font-size:.82rem;color:var(--text-secondary);margin-bottom:8px;">
+      每行一个错题，格式：<strong>题号 复习次数</strong>（用空格、逗号、Tab 分隔均可）<br>
+      示例输入见下方，程序会自动生成正确的 JSON 并合并到现有数据中。
+    </p>
+    <textarea id="batchImportText" placeholder='例：&#10;3.1.2 3&#10;二次函数-顶点式 1&#10;向量-夹角公式 0&#10;概率-条件概率 5' style="height:200px;"></textarea>
+    <p style="font-size:.78rem;color:var(--text-secondary);margin-top:4px;">
+      💡 复习次数 = 已经复习过的次数。0 表示新错题从未复习。
+    </p>
+    <div class="modal-btns">
+      <button class="btn btn-outline btn-sm" onclick="closeBatchImportModal()">取消</button>
+      <button class="btn btn-primary btn-sm" onclick="doBatchImport()">解析并导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Clear Modal -->
+<div class="modal-overlay" id="confirmModal" style="display:none;">
+  <div class="modal">
+    <h3>⚠️ 确认清空</h3>
+    <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:12px;">
+      将删除所有错题数据，此操作不可撤销。建议先导出备份。
+    </p>
+    <div class="modal-btns">
+      <button class="btn btn-outline btn-sm" onclick="closeConfirmModal()">取消</button>
+      <button class="btn btn-danger btn-sm" onclick="clearAll()">确认清空</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ========== 艾宾浩斯遗忘曲线 ==========
+const EBBINGHAUS_INTERVALS = [1, 2, 4, 7, 15, 30];
+
+function getInterval(reviewCount) {
+  // reviewCount: 已完成复习的次数 (0 = 一次都没复习过)
+  const idx = Math.min(reviewCount, EBBINGHAUS_INTERVALS.length - 1);
+  return EBBINGHAUS_INTERVALS[idx];
+}
+
+// ========== 工具函数 ==========
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+
+function daysBetween(d1, d2) {
+  return Math.floor((new Date(d2) - new Date(d1)) / 86400000);
+}
+
+function genId() { return crypto.randomUUID(); }
+
+function fmtDate(d) {
+  if (!d) return '—';
+  const parts = d.split('-');
+  return parts[1] + '/' + parts[2];
+}
+
+// ========== 数据持久化 ==========
+const STORAGE_KEY = 'mistake_problems';
+const TODAY_KEY = 'reviewed_today';
+
+function loadProblems() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveProblems(problems) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(problems));
+}
+
+function loadTodayReviewed() {
+  try {
+    const raw = localStorage.getItem(TODAY_KEY);
+    const data = raw ? JSON.parse(raw) : {};
+    // 如果存储的日期不是今天，重置
+    if (data.date !== todayStr()) return { date: todayStr(), ids: [] };
+    return data;
+  } catch { return { date: todayStr(), ids: [] }; }
+}
+
+function saveTodayReviewed(data) {
+  localStorage.setItem(TODAY_KEY, JSON.stringify(data));
+}
+
+// ========== Toast ==========
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ========== 添加错题 ==========
+function addProblem(e) {
+  e.preventDefault();
+  const input = document.getElementById('inputIndex');
+  const index = input.value.trim();
+  if (!index) return;
+
+  const problems = loadProblems();
+  // 检查是否已存在相同索引
+  if (problems.some(p => p.index === index)) {
+    showToast('⚠️ 该错题已存在，请勿重复添加');
+    return;
+  }
+
+  const problem = {
+    id: genId(),
+    index: index,
+    reviewCount: 0,
+    lastReviewDate: null,
+    nextReviewDate: todayStr(), // 新错题默认今天就应该复习
+    dateAdded: todayStr()
+  };
+  problems.push(problem);
+  saveProblems(problems);
+  input.value = '';
+  showToast('✅ 错题「' + index + '」已添加');
+  renderAll();
+}
+
+// ========== 获取推荐错题 ==========
+function getRecommendation() {
+  const problems = loadProblems();
+  const today = todayStr();
+  const todayReviewed = loadTodayReviewed();
+  const reviewedIds = todayReviewed.ids;
+
+  // 过滤掉今天已经复习过的
+  const candidates = problems.filter(p => !reviewedIds.includes(p.id));
+  if (candidates.length === 0) return null;
+
+  // 分类：到期的 vs 未到期的
+  const due = candidates.filter(p => p.nextReviewDate && p.nextReviewDate <= today);
+  const upcoming = candidates.filter(p => !p.nextReviewDate || p.nextReviewDate > today);
+
+  // 排序：逾期天数降序 → reviewCount 升序
+  due.sort((a, b) => {
+    const overdueA = daysBetween(a.nextReviewDate, today);
+    const overdueB = daysBetween(b.nextReviewDate, today);
+    if (overdueB !== overdueA) return overdueB - overdueA;
+    return a.reviewCount - b.reviewCount;
+  });
+
+  // 未到期：最近到期优先 → reviewCount 升序
+  upcoming.sort((a, b) => {
+    const dA = daysBetween(today, a.nextReviewDate || today);
+    const dB = daysBetween(today, b.nextReviewDate || today);
+    if (dA !== dB) return dA - dB;
+    return a.reviewCount - b.reviewCount;
+  });
+
+  return due.length > 0 ? due[0] : (upcoming.length > 0 ? upcoming[0] : null);
+}
+
+// ========== 标记已复习 ==========
+function markReviewed() {
+  const rec = getRecommendation();
+  if (!rec) return;
+
+  const problems = loadProblems();
+  const idx = problems.findIndex(p => p.id === rec.id);
+  if (idx === -1) return;
+
+  const today = todayStr();
+  const newReviewCount = problems[idx].reviewCount + 1;
+  const interval = getInterval(newReviewCount);
+  const nextDate = new Date(today);
+  nextDate.setDate(nextDate.getDate() + interval);
+
+  problems[idx].reviewCount = newReviewCount;
+  problems[idx].lastReviewDate = today;
+  problems[idx].nextReviewDate = nextDate.toISOString().slice(0, 10);
+  saveProblems(problems);
+
+  // 记录今日已复习
+  const todayReviewed = loadTodayReviewed();
+  todayReviewed.ids.push(rec.id);
+  saveTodayReviewed(todayReviewed);
+
+  showToast('✅ 已完成复习！下次复习：' + fmtDate(problems[idx].nextReviewDate) + '（+' + interval + '天）');
+  renderAll();
+}
+
+function skipCurrent() {
+  const rec = getRecommendation();
+  if (!rec) return;
+
+  const todayReviewed = loadTodayReviewed();
+  todayReviewed.ids.push(rec.id);
+  saveTodayReviewed(todayReviewed);
+
+  showToast('⏭ 已跳过「' + rec.index + '」，今天不再推荐');
+  renderAll();
+}
+
+// ========== 删除错题 ==========
+function deleteProblem(id) {
+  let problems = loadProblems();
+  const p = problems.find(p => p.id === id);
+  problems = problems.filter(p => p.id !== id);
+  saveProblems(problems);
+
+  // 从今日已复习中移除
+  const todayReviewed = loadTodayReviewed();
+  todayReviewed.ids = todayReviewed.ids.filter(i => i !== id);
+  saveTodayReviewed(todayReviewed);
+
+  showToast('🗑 已删除「' + (p ? p.index : '') + '」');
+  renderAll();
+}
+
+// ========== 手动复习（列表中的按钮） ==========
+function manualReview(id) {
+  const problems = loadProblems();
+  const idx = problems.findIndex(p => p.id === id);
+  if (idx === -1) return;
+
+  const today = todayStr();
+  const newReviewCount = problems[idx].reviewCount + 1;
+  const interval = getInterval(newReviewCount);
+  const nextDate = new Date(today);
+  nextDate.setDate(nextDate.getDate() + interval);
+
+  problems[idx].reviewCount = newReviewCount;
+  problems[idx].lastReviewDate = today;
+  problems[idx].nextReviewDate = nextDate.toISOString().slice(0, 10);
+  saveProblems(problems);
+
+  const todayReviewed = loadTodayReviewed();
+  if (!todayReviewed.ids.includes(id)) {
+    todayReviewed.ids.push(id);
+    saveTodayReviewed(todayReviewed);
+  }
+
+  showToast('✅ 已复习「' + problems[idx].index + '」，下次：' + fmtDate(problems[idx].nextReviewDate));
+  renderAll();
+}
+
+// ========== 渲染 ==========
+function renderRecommendCard() {
+  const card = document.getElementById('recommendCard');
+  const content = document.getElementById('recommendContent');
+  const btns = document.getElementById('recommendBtns');
+  const rec = getRecommendation();
+
+  if (!rec) {
+    card.classList.add('empty');
+    btns.style.display = 'none';
+    const problems = loadProblems();
+    if (problems.length === 0) {
+      content.innerHTML = '<div class="icon">📝</div><p>还没有错题，先添加一个吧</p>';
+    } else if (loadTodayReviewed().ids.length >= problems.length) {
+      content.innerHTML = '<div class="icon">🎉</div><p>今天全部复习完毕，太棒了！</p>';
+    } else {
+      content.innerHTML = '<div class="icon">🎉</div><p>暂无待复习错题</p>';
+    }
+    return;
+  }
+
+  card.classList.remove('empty');
+  btns.style.display = 'flex';
+  const today = todayStr();
+  const overdueDays = daysBetween(rec.nextReviewDate, today);
+  const isOverdue = overdueDays > 0;
+  const isDueToday = overdueDays === 0;
+  const isUpcoming = overdueDays < 0;
+  const daysUntilDue = -overdueDays;
+
+  let badgeHtml = '';
+  if (isOverdue) {
+    badgeHtml = '<span class="overdue-badge">⚠️ 逾期 ' + overdueDays + ' 天</span>';
+  } else if (isDueToday) {
+    badgeHtml = '<span class="due-badge">📅 今天到期</span>';
+  } else {
+    badgeHtml = '<span style="font-size:.75rem;color:var(--warning);">📅 ' + daysUntilDue + ' 天后到期（提前复习）</span>';
+  }
+
+  content.innerHTML = `
+    <div class="icon">🎯</div>
+    <div class="problem-index">${escapeHtml(rec.index)}</div>
+    <div class="meta">
+      <span>📊 已复习 <strong>${rec.reviewCount}</strong> 次</span>
+      <span>📅 上次：${rec.lastReviewDate ? fmtDate(rec.lastReviewDate) : '从未'}</span>
+      ${badgeHtml}
+    </div>
+  `;
+}
+
+function renderProblemList() {
+  const problems = loadProblems();
+  const container = document.getElementById('problemList');
+  const listCount = document.getElementById('listCount');
+  const today = todayStr();
+  const todayReviewed = loadTodayReviewed();
+
+  listCount.textContent = '(' + problems.length + ' 题)';
+
+  if (problems.length === 0) {
+    container.innerHTML = '<div class="empty-list">📭 暂无错题，在上方添加第一个吧</div>';
+    return;
+  }
+
+  // 排序：今天已复习的排后面
+  const sorted = [...problems].sort((a, b) => {
+    const aDone = todayReviewed.ids.includes(a.id);
+    const bDone = todayReviewed.ids.includes(b.id);
+    if (aDone !== bDone) return aDone ? 1 : -1;
+    // 逾期优先
+    const aOverdue = a.nextReviewDate ? daysBetween(a.nextReviewDate, today) : 0;
+    const bOverdue = b.nextReviewDate ? daysBetween(b.nextReviewDate, today) : 0;
+    return bOverdue - aOverdue;
+  });
+
+  container.innerHTML = sorted.map(p => {
+    const isReviewedToday = todayReviewed.ids.includes(p.id);
+    const overdueDays = p.nextReviewDate ? daysBetween(p.nextReviewDate, today) : 0;
+    let dateClass = '';
+    let dateLabel = p.nextReviewDate ? fmtDate(p.nextReviewDate) : '今天';
+    if (isReviewedToday) {
+      dateLabel = '✅ 已复习';
+    } else if (overdueDays > 0) {
+      dateClass = 'overdue';
+      dateLabel = '⚠️ 逾期' + overdueDays + '天';
+    } else if (overdueDays === 0) {
+      dateClass = 'near';
+      dateLabel = '📅 今天';
+    } else {
+      dateLabel = fmtDate(p.nextReviewDate);
+    }
+
+    return `
+      <div class="problem-item" style="${isReviewedToday ? 'opacity:.5;' : ''}">
+        <div style="font-size:1.2rem;">${isReviewedToday ? '✅' : (overdueDays > 0 ? '🔴' : (overdueDays === 0 ? '🟡' : '🔵'))}</div>
+        <div class="col-index">${escapeHtml(p.index)}</div>
+        <div class="col-count">已复习 ${p.reviewCount} 次</div>
+        <div class="col-date ${dateClass}">${dateLabel}</div>
+        <div class="col-actions">
+          ${!isReviewedToday ? '<button class="btn btn-success btn-sm" onclick="manualReview(\'' + p.id + '\')" title="标记已复习">✅</button>' : ''}
+          <button class="btn btn-outline btn-sm" onclick="deleteProblem(\'' + p.id + '\')" title="删除" style="padding:4px 8px;">🗑</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderStats() {
+  const problems = loadProblems();
+  const today = todayStr();
+  const todayReviewed = loadTodayReviewed();
+
+  document.getElementById('statTotal').textContent = problems.length;
+
+  const dueCount = problems.filter(p =>
+    !todayReviewed.ids.includes(p.id) && p.nextReviewDate && p.nextReviewDate <= today
+  ).length;
+  document.getElementById('statDue').textContent = dueCount;
+  document.getElementById('statReviewed').textContent = todayReviewed.ids.length;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function renderAll() {
+  renderStats();
+  renderRecommendCard();
+  renderProblemList();
+}
+
+// ========== 数据导入/导出 ==========
+function exportData() {
+  const problems = loadProblems();
+  const data = JSON.stringify(problems, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '错题备份_' + todayStr() + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📤 数据已导出');
+}
+
+function triggerImport() {
+  document.getElementById('importModal').style.display = 'flex';
+  document.getElementById('importText').value = '';
+}
+
+function closeImportModal() {
+  document.getElementById('importModal').style.display = 'none';
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    document.getElementById('importText').value = ev.target.result;
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function doImport() {
+  const text = document.getElementById('importText').value.trim();
+  if (!text) { showToast('⚠️ 请粘贴或选择 JSON 数据'); return; }
+
+  let imported;
+  try {
+    imported = JSON.parse(text);
+    if (!Array.isArray(imported)) throw new Error('不是数组');
+  } catch {
+    showToast('❌ JSON 格式错误，请检查');
+    return;
+  }
+
+  // 验证并合并
+  const problems = loadProblems();
+  let added = 0, updated = 0, skipped = 0;
+  const idMap = new Map(problems.map(p => [p.id, p]));
+
+  for (const item of imported) {
+    if (!item.id || !item.index) { skipped++; continue; }
+    // 确保必要字段存在
+    item.reviewCount = item.reviewCount ?? 0;
+    item.lastReviewDate = item.lastReviewDate ?? null;
+    item.nextReviewDate = item.nextReviewDate ?? todayStr();
+    item.dateAdded = item.dateAdded ?? todayStr();
+
+    if (idMap.has(item.id)) {
+      idMap.set(item.id, item);
+      updated++;
+    } else {
+      idMap.set(item.id, item);
+      added++;
+    }
+  }
+
+  saveProblems([...idMap.values()]);
+  closeImportModal();
+  showToast('📥 导入完成：新增 ' + added + '，更新 ' + updated + '，跳过 ' + skipped);
+  renderAll();
+}
+
+// ========== 批量导入 ==========
+function triggerBatchImport() {
+  document.getElementById('batchImportModal').style.display = 'flex';
+  document.getElementById('batchImportText').value = '';
+}
+
+function closeBatchImportModal() {
+  document.getElementById('batchImportModal').style.display = 'none';
+}
+
+function doBatchImport() {
+  const text = document.getElementById('batchImportText').value.trim();
+  if (!text) { showToast('⚠️ 请粘贴错题数据'); return; }
+
+  const lines = text.split('\n').filter(line => line.trim());
+  const today = todayStr();
+  const problems = loadProblems();
+  const existingIndexes = new Set(problems.map(p => p.index));
+  let added = 0, skipped = 0, errors = 0;
+
+  for (const line of lines) {
+    // 支持空格、逗号、Tab、中文逗号分隔
+    const parts = line.trim().split(/[\s,，\t]+/);
+    if (parts.length < 2) {
+      errors++; continue;
+    }
+
+    const index = parts[0].trim();
+    const count = parseInt(parts[parts.length - 1], 10);
+
+    if (!index || isNaN(count) || count < 0) {
+      errors++; continue;
+    }
+
+    if (existingIndexes.has(index)) {
+      skipped++;
+      continue;
+    }
+
+    const problem = {
+      id: genId(),
+      index: index,
+      reviewCount: count,
+      lastReviewDate: null,
+      nextReviewDate: today,
+      dateAdded: today
+    };
+
+    problems.push(problem);
+    existingIndexes.add(index);
+    added++;
+  }
+
+  saveProblems(problems);
+  closeBatchImportModal();
+
+  let msg = '📝 导入完成：新增 ' + added;
+  if (skipped > 0) msg += '，跳过重复 ' + skipped;
+  if (errors > 0) msg += '，格式错误 ' + errors;
+  showToast(msg);
+  renderAll();
+}
+
+// ========== 清空数据 ==========
+function confirmClear() {
+  document.getElementById('confirmModal').style.display = 'flex';
+}
+
+function closeConfirmModal() {
+  document.getElementById('confirmModal').style.display = 'none';
+}
+
+function clearAll() {
+  saveProblems([]);
+  saveTodayReviewed({ date: todayStr(), ids: [] });
+  closeConfirmModal();
+  showToast('🗑 所有数据已清空');
+  renderAll();
+}
+
+// ========== 键盘快捷键 ==========
+document.addEventListener('keydown', function(e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'Enter') {
+    const rec = getRecommendation();
+    if (rec) markReviewed();
+  }
+  if (e.key === ' ' || e.key === 'ArrowRight') {
+    e.preventDefault();
+    const rec = getRecommendation();
+    if (rec) skipCurrent();
+  }
+});
+
+// ========== Modal 点击遮罩关闭 ==========
+document.getElementById('importModal').addEventListener('click', function(e) {
+  if (e.target === this) closeImportModal();
+});
+document.getElementById('confirmModal').addEventListener('click', function(e) {
+  if (e.target === this) closeConfirmModal();
+});
+document.getElementById('batchImportModal').addEventListener('click', function(e) {
+  if (e.target === this) closeBatchImportModal();
+});
+
+// ========== 初始化 ==========
+renderAll();
+</script>
+
+</body>
+</html>
